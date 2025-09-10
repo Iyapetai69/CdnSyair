@@ -12,7 +12,8 @@ def scrape_images():
     response.raise_for_status()
     xml = response.text
 
-    soup = BeautifulSoup(xml, "xml")
+    # pake parser lxml
+    soup = BeautifulSoup(xml, "lxml-xml")
     items = soup.find_all("item")
 
     index_data = []
