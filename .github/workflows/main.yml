@@ -22,7 +22,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install requests beautifulsoup4 python-slugify lxml
+          pip install requests beautifulsoup4 python-slugify lxml pillow
 
       - name: Run scraper
         run: python scraper.py
