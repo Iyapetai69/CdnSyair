@@ -1,4 +1,5 @@
 import os
+import re
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
@@ -14,27 +15,40 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 # Ambil tanggal hari ini
 today = datetime.now().strftime("%Y%m%d")
 
-# Ambil HTML dari target
-response = requests.get(URL)
-soup = BeautifulSoup(response.text, "html.parser")
+# Ambil HTML dengan header User-Agent
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                  "AppleWebKit/537.36 (KHTML, like Gecko) "
+                  "Chrome/122.0.0.0 Safari/537.36"
+}
+response = requests.get(URL, headers=headers)
+html = response.text
+soup = BeautifulSoup(html, "html.parser")
 
-# Cari semua gambar di dalam div.separator
+# Cari semua div.separator
 images = []
 for div in soup.find_all("div", class_="separator"):
-    img = div.find("img")
-    if img and img.get("src"):
-        images.append(img.get("src"))
+    div_html = str(div)
+
+    # Regex cari semua <img ...>
+    matches = re.findall(r'<img[^>]+>', div_html, re.IGNORECASE)
+
+    for tag in matches:
+        # Cari src / data-original / data-src
+        src_match = re.search(r'(src|data-original|data-src)="([^"]+)"', tag)
+        if src_match:
+            src = src_match.group(2)
+            if src.startswith("//"):
+                src = "https:" + src
+            images.append(src)
+
+print(f"Found {len(images)} images")
 
 # Simpan gambar ke folder
 saved_files = []
 for i, src in enumerate(images, start=1):
-    if src.startswith("//"):
-        src = "https:" + src
-    elif src.startswith("/"):
-        src = URL.rstrip("/") + src
-
     try:
-        img_data = requests.get(src).content
+        img_data = requests.get(src, headers=headers).content
         filename = f"PrediksiMacau{today}_{i}.jpg"
         filepath = os.path.join(OUTPUT_DIR, filename)
         with open(filepath, "wb") as f:
