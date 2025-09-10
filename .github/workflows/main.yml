@@ -21,13 +21,16 @@ jobs:
         run: |
           pip install requests beautifulsoup4
 
+      - name: Debug - List repo files
+        run: ls -R
+
       - name: Clear old images
         run: |
           rm -rf images
           mkdir images
 
       - name: Run scraper
-        run: python scraper.py
+        run: python scraper.py   # ganti path kalau file bukan di root
 
       - name: Commit and Push results
         run: |
