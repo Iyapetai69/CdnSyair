@@ -3,7 +3,7 @@ name: Scrape Images
 on:
   schedule:
     - cron: "0 0 * * *"   # jalan tiap hari jam 00:00 UTC
-  workflow_dispatch:       # bisa manual trigger juga
+  workflow_dispatch:
 
 jobs:
   scrape:
@@ -19,7 +19,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install requests beautifulsoup4 python-slugify
+          pip install requests beautifulsoup4 python-slugify lxml
 
       - name: Run scraper
         run: python scraper.py
