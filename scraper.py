@@ -1,72 +1,66 @@
-import os
-import re
 import requests
 from bs4 import BeautifulSoup
-from datetime import datetime
+import os
 import json
+from datetime import datetime
+from urllib.parse import urlparse
+import re
 
-# URL target scrape
 URL = "https://datamacautoday.blogspot.com/2025/04/syair-macau.html?m=1"
 
-# Folder simpan gambar
-OUTPUT_DIR = "images"
-os.makedirs(OUTPUT_DIR, exist_ok=True)
+def scrape_images():
+    # ambil HTML
+    response = requests.get(URL, headers={"User-Agent": "Mozilla/5.0"})
+    response.raise_for_status()
+    html = response.text
 
-# Ambil tanggal hari ini
-today = datetime.now().strftime("%Y%m%d")
+    # save debug
+    with open("response.html", "w", encoding="utf-8") as f:
+        f.write(html)
+    print("Saved response.html for debugging")
 
-# Ambil HTML dengan header User-Agent
-headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                  "AppleWebKit/537.36 (KHTML, like Gecko) "
-                  "Chrome/122.0.0.0 Safari/537.36"
-}
-response = requests.get(URL, headers=headers)
-html = response.text
-soup = BeautifulSoup(html, "html.parser")
+    # parse HTML
+    soup = BeautifulSoup(html, "html.parser")
+    img_tags = soup.find_all("img")
 
-# Cari semua div.separator
-images = []
-for div in soup.find_all("div", class_="separator"):
-    div_html = str(div)
+    print(f"Found {len(img_tags)} images")
 
-    # Regex cari semua <img ...>
-    matches = re.findall(r'<img[^>]+>', div_html, re.IGNORECASE)
+    # bikin folder images
+    os.makedirs("images", exist_ok=True)
 
-    for tag in matches:
-        # Cari src / data-original / data-src
-        src_match = re.search(r'(src|data-original|data-src)="([^"]+)"', tag)
-        if src_match:
-            src = src_match.group(2)
-            if src.startswith("//"):
-                src = "https:" + src
-            images.append(src)
+    # nama file pakai tanggal
+    today = datetime.utcnow().strftime("%Y%m%d")
+    data = []
+    counter = 1
 
-print(f"Found {len(images)} images")
+    for img in img_tags:
+        src = img.get("src") or img.get("data-src") or img.get("data-original")
+        if not src:
+            continue
 
-# Simpan gambar ke folder
-saved_files = []
-for i, src in enumerate(images, start=1):
-    try:
-        img_data = requests.get(src, headers=headers).content
-        filename = f"PrediksiMacau{today}_{i}.jpg"
-        filepath = os.path.join(OUTPUT_DIR, filename)
-        with open(filepath, "wb") as f:
-            f.write(img_data)
-        saved_files.append(filepath)
-        print(f"Saved: {filepath}")
-    except Exception as e:
-        print(f"Failed to download {src}: {e}")
+        # cek ekstensi
+        parsed = urlparse(src)
+        ext_match = re.search(r"\.(jpg|jpeg|png|gif)", parsed.path, re.IGNORECASE)
+        ext = ext_match.group(0) if ext_match else ".jpg"
 
-# Buat data.json
-json_data = {
-    "date": today,
-    "count": len(saved_files),
-    "images": saved_files
-}
+        filename = f"PrediksiMacau{today}_{counter}{ext}"
+        filepath = os.path.join("images", filename)
 
-json_path = os.path.join(OUTPUT_DIR, "data.json")
-with open(json_path, "w", encoding="utf-8") as jf:
-    json.dump(json_data, jf, indent=2)
+        try:
+            img_data = requests.get(src, timeout=10).content
+            with open(filepath, "wb") as f:
+                f.write(img_data)
+            data.append({"filename": filename, "url": src})
+            print(f"Saved {filename}")
+            counter += 1
+        except Exception as e:
+            print(f"Failed to download {src}: {e}")
 
-print(f"Saved JSON: {json_path}")
+    # save json
+    with open("images/data.json", "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+    print("Scraping done.")
+
+if __name__ == "__main__":
+    scrape_images()
