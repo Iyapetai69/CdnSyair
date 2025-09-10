@@ -2,63 +2,72 @@ import requests
 from bs4 import BeautifulSoup
 import os
 import json
-from datetime import datetime
-from urllib.parse import urlparse
-import re
+from slugify import slugify  # pip install python-slugify
 
-URL = "https://datamacautoday.blogspot.com/2025/04/syair-macau.html?m=1"
+RSS_URL = "https://datamacautoday.blogspot.com/feeds/posts/default?alt=rss"
+OUTPUT_DIR = "images"
 
 def scrape_images():
-    # ambil HTML
-    response = requests.get(URL, headers={"User-Agent": "Mozilla/5.0"})
+    response = requests.get(RSS_URL, headers={"User-Agent": "Mozilla/5.0"})
     response.raise_for_status()
-    html = response.text
+    xml = response.text
 
-    # save debug
-    with open("response.html", "w", encoding="utf-8") as f:
-        f.write(html)
-    print("Saved response.html for debugging")
+    soup = BeautifulSoup(xml, "xml")
+    items = soup.find_all("item")
 
-    # parse HTML
-    soup = BeautifulSoup(html, "html.parser")
-    img_tags = soup.find_all("img")
+    index_data = []
 
-    print(f"Found {len(img_tags)} images")
+    for item in items:
+        title = item.find("title").text.strip()
+        folder_name = slugify(title)
+        folder_path = os.path.join(OUTPUT_DIR, folder_name)
+        os.makedirs(folder_path, exist_ok=True)
 
-    # bikin folder images
-    os.makedirs("images", exist_ok=True)
+        desc = item.find("description")
+        images = []
+        if desc:
+            desc_html = BeautifulSoup(desc.text, "html.parser")
+            for img in desc_html.find_all("img"):
+                src = img.get("src")
+                if src:
+                    images.append(src)
 
-    # nama file pakai tanggal
-    today = datetime.utcnow().strftime("%Y%m%d")
-    data = []
-    counter = 1
+        print(f"[{title}] Found {len(images)} images")
 
-    for img in img_tags:
-        src = img.get("src") or img.get("data-src") or img.get("data-original")
-        if not src:
-            continue
+        data = []
+        for i, src in enumerate(images, start=1):
+            try:
+                img_data = requests.get(src, timeout=10).content
+                filename = f"{slugify(title)}_{i}.jpg"
+                filepath = os.path.join(folder_path, filename)
 
-        # cek ekstensi
-        parsed = urlparse(src)
-        ext_match = re.search(r"\.(jpg|jpeg|png|gif)", parsed.path, re.IGNORECASE)
-        ext = ext_match.group(0) if ext_match else ".jpg"
+                with open(filepath, "wb") as f:
+                    f.write(img_data)
 
-        filename = f"PrediksiMacau{today}_{counter}{ext}"
-        filepath = os.path.join("images", filename)
+                data.append({"filename": filename, "url": src})
+            except Exception as e:
+                print(f"  Failed {src}: {e}")
 
-        try:
-            img_data = requests.get(src, timeout=10).content
-            with open(filepath, "wb") as f:
-                f.write(img_data)
-            data.append({"filename": filename, "url": src})
-            print(f"Saved {filename}")
-            counter += 1
-        except Exception as e:
-            print(f"Failed to download {src}: {e}")
+        # simpan json per post
+        json_path = os.path.join(folder_path, "data.json")
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump({
+                "title": title,
+                "folder": folder_name,
+                "count": len(data),
+                "images": data
+            }, f, ensure_ascii=False, indent=2)
 
-    # save json
-    with open("images/data.json", "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+        # tambahin ke index.json
+        index_data.append({
+            "title": title,
+            "folder": folder_name,
+            "count": len(data)
+        })
+
+    # simpan index.json
+    with open(os.path.join(OUTPUT_DIR, "index.json"), "w", encoding="utf-8") as f:
+        json.dump(index_data, f, ensure_ascii=False, indent=2)
 
     print("Scraping done.")
 
