@@ -3,7 +3,10 @@ name: Daily Image Scraper
 on:
   schedule:
     - cron: "0 0 * * *"   # jalan tiap jam 00:00 UTC (07:00 WIB)
-  workflow_dispatch:
+  workflow_dispatch:       # bisa dijalankan manual juga
+
+permissions:
+  contents: write   # kasih izin buat push ke repo
 
 jobs:
   scrape:
@@ -11,6 +14,8 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -30,7 +35,7 @@ jobs:
           mkdir images
 
       - name: Run scraper
-        run: python scraper.py   # ganti path kalau file bukan di root
+        run: python scraper.py   # pastikan scraper.py ada di root repo
 
       - name: Commit and Push results
         run: |
