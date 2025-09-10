@@ -1,0 +1,38 @@
+name: Daily Image Scraper
+
+on:
+  schedule:
+    - cron: "0 0 * * *"   # jalan tiap jam 00:00 UTC (07:00 WIB)
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          pip install requests beautifulsoup4
+
+      - name: Clear old images
+        run: |
+          rm -rf images
+          mkdir images
+
+      - name: Run scraper
+        run: python scraper.py
+
+      - name: Commit and Push results
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git diff-index --quiet HEAD || git commit -m "Update scraped images $(date)"
+          git push
