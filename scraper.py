@@ -3,16 +3,29 @@ from bs4 import BeautifulSoup
 import os
 import json
 import shutil
-from slugify import slugify  # pip install python-slugify
+from slugify import slugify
+from PIL import Image
+from io import BytesIO
 
 # ===== CONFIG =====
 RSS_URL = "https://datamacautoday.blogspot.com/feeds/posts/default?alt=rss"
 OUTPUT_DIR = "images"
-BASE_URL = "https://raw.githubusercontent.com/Iyapetai69/CdnSyair/refs/heads/main/images"  # ganti sesuai repo GitHub Pages lo
+BASE_URL = "https://raw.githubusercontent.com/Iyapetai69/CdnSyair/refs/heads/main/images"
 # ==================
 
+def download_and_convert(src, save_path):
+    resp = requests.get(src, timeout=10, headers={"User-Agent": "Mozilla/5.0"})
+    resp.raise_for_status()
+    img = Image.open(BytesIO(resp.content))
+
+    if img.mode in ("RGBA", "P"):
+        img = img.convert("RGB")
+
+    save_path = os.path.splitext(save_path)[0] + ".webp"
+    img.save(save_path, "webp", quality=85)
+    return save_path
+
 def scrape_images():
-    # hapus folder lama dulu biar bersih
     if os.path.exists(OUTPUT_DIR):
         shutil.rmtree(OUTPUT_DIR)
     os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -46,16 +59,14 @@ def scrape_images():
         data = []
         for i, src in enumerate(images, start=1):
             try:
-                img_data = requests.get(src, timeout=10).content
-                filename = f"{slugify(title)}_{i}.jpg"
+                filename = f"{slugify(title)}_{i}.webp"
                 filepath = os.path.join(folder_path, filename)
 
-                with open(filepath, "wb") as f:
-                    f.write(img_data)
+                saved_path = download_and_convert(src, filepath)
 
                 data.append({
-                    "filename": filename,
-                    "url": f"{BASE_URL}/{folder_name}/{filename}"  # pake URL GitHub Pages
+                    "filename": os.path.basename(saved_path),
+                    "url": f"{BASE_URL}/{folder_name}/{os.path.basename(saved_path)}"
                 })
             except Exception as e:
                 print(f"  Failed {src}: {e}")
