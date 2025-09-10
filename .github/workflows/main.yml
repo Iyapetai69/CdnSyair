@@ -1,46 +1,33 @@
-name: Daily Image Scraper
+name: Scrape Images
 
 on:
   schedule:
-    - cron: "0 0 * * *"   # jalan tiap jam 00:00 UTC (07:00 WIB)
-  workflow_dispatch:       # bisa dijalankan manual juga
-
-permissions:
-  contents: write   # kasih izin buat push ke repo
+    - cron: "0 0 * * *"   # jalan tiap hari jam 00:00 UTC
+  workflow_dispatch:       # bisa manual trigger juga
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repo
+      - name: Checkout repository
         uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup Python
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
 
       - name: Install dependencies
         run: |
-          pip install requests beautifulsoup4
-
-      - name: Debug - List repo files
-        run: ls -R
-
-      - name: Clear old images
-        run: |
-          rm -rf images
-          mkdir images
+          pip install requests beautifulsoup4 python-slugify
 
       - name: Run scraper
-        run: python scraper.py   # pastikan scraper.py ada di root repo
+        run: python scraper.py
 
-      - name: Commit and Push results
+      - name: Commit and push changes
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add .
-          git diff-index --quiet HEAD || git commit -m "Update scraped images $(date)"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add images/
+          git commit -m "Update scraped images $(date +'%Y-%m-%d %H:%M:%S')" || echo "No changes to commit"
           git push
