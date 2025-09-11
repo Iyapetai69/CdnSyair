@@ -11,11 +11,11 @@ from datetime import datetime
 # ===== CONFIG =====
 RSS_URL = "https://datamacautoday.blogspot.com/feeds/posts/default?alt=rss"
 OUTPUT_DIR = "images"
-BASE_URL = "https://cdn.jsdelivr.net/gh/Iyapetai69/CdnSyair@main/images"  # pake CDN
+BASE_URL = "https://cdn.jsdelivr.net/gh/Iyapetai69/CdnSyair@main/images"
 # ==================
 
 def download_and_convert(src, save_path):
-    """Download gambar, convert ke WebP, dan simpan"""
+    """Download image dari src dan convert ke WebP"""
     resp = requests.get(src, timeout=10, headers={"User-Agent": "Mozilla/5.0"})
     resp.raise_for_status()
     img = Image.open(BytesIO(resp.content))
@@ -28,12 +28,12 @@ def download_and_convert(src, save_path):
     return save_path
 
 def scrape_images():
-    # Hapus folder lama biar bersih
+    """Scrape semua gambar dari RSS feed"""
+    # hapus folder lama dulu biar bersih
     if os.path.exists(OUTPUT_DIR):
         shutil.rmtree(OUTPUT_DIR)
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-    # Ambil feed RSS
     response = requests.get(RSS_URL, headers={"User-Agent": "Mozilla/5.0"})
     response.raise_for_status()
     xml = response.text
@@ -49,7 +49,6 @@ def scrape_images():
         folder_path = os.path.join(OUTPUT_DIR, folder_name)
         os.makedirs(folder_path, exist_ok=True)
 
-        # Ambil semua gambar di deskripsi
         desc = item.find("description")
         images = []
         if desc:
@@ -62,12 +61,10 @@ def scrape_images():
         print(f"[{title}] Found {len(images)} images")
 
         data = []
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M")  # timestamp untuk semua image di post
         for i, src in enumerate(images, start=1):
             try:
-                # Nama file pakai title + tanggal jam sekarang
-                now = datetime.now()
-                timestamp = now.strftime("%Y%m%d_%H%M")
-                filename = f"{slugify(title)}_{timestamp}.webp"
+                filename = f"{slugify(title)}_{timestamp}_{i}.webp"
                 filepath = os.path.join(folder_path, filename)
 
                 saved_path = download_and_convert(src, filepath)
@@ -79,7 +76,7 @@ def scrape_images():
             except Exception as e:
                 print(f"  Failed {src}: {e}")
 
-        # Simpan JSON per post
+        # simpan json per post
         json_path = os.path.join(folder_path, "data.json")
         with open(json_path, "w", encoding="utf-8") as f:
             json.dump({
@@ -89,7 +86,7 @@ def scrape_images():
                 "images": data
             }, f, ensure_ascii=False, indent=2)
 
-        # Tambah ke index.json
+        # tambahin ke index.json
         index_data.append({
             "title": title,
             "folder": folder_name,
@@ -97,7 +94,7 @@ def scrape_images():
             "cover_url": data[0]["url"] if data else None
         })
 
-    # Simpan index.json
+    # simpan index.json
     with open(os.path.join(OUTPUT_DIR, "index.json"), "w", encoding="utf-8") as f:
         json.dump(index_data, f, ensure_ascii=False, indent=2)
 
