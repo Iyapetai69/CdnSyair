@@ -1,7 +1,7 @@
 {
   "title": "SYAIR HONGKONG",
   "folder": "syair-hongkong",
-  "count": 17,
+  "count": 18,
   "images": [
     {
       "filename": "syair-hongkong_1.webp",
@@ -70,6 +70,10 @@
     {
       "filename": "syair-hongkong_17.webp",
       "url": "https://cdn.jsdelivr.net/gh/Iyapetai69/CdnSyair@main/images/syair-hongkong/syair-hongkong_17.webp"
+    },
+    {
+      "filename": "syair-hongkong_18.webp",
+      "url": "https://cdn.jsdelivr.net/gh/Iyapetai69/CdnSyair@main/images/syair-hongkong/syair-hongkong_18.webp"
     }
   ]
 }
