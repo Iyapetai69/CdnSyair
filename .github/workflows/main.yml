@@ -2,11 +2,11 @@ name: Scrape Images
 
 on:
   schedule:
-    - cron: "0 */2 * * *"   # jalan tiap hari jam 00:00 UTC
+    - cron: "0 */2 * * *"   # jalan tiap 2 jam sekali
   workflow_dispatch:
 
 permissions:
-  contents: write   # kasih akses push commit
+  contents: write
 
 jobs:
   scrape:
@@ -23,6 +23,13 @@ jobs:
       - name: Install dependencies
         run: |
           pip install requests beautifulsoup4 python-slugify lxml pillow
+
+      - name: Remove old images
+        run: |
+          if [ -d "images" ]; then
+            rm -rf images
+            echo "Old images folder removed."
+          fi
 
       - name: Run scraper
         run: python scraper.py
