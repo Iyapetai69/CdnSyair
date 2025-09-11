@@ -10,7 +10,7 @@ from io import BytesIO
 # ===== CONFIG =====
 RSS_URL = "https://datamacautoday.blogspot.com/feeds/posts/default?alt=rss"
 OUTPUT_DIR = "images"
-BASE_URL = "https://raw.githubusercontent.com/Iyapetai69/CdnSyair/refs/heads/main/images"
+BASE_URL = "https://cdn.jsdelivr.net/gh/Iyapetai69/CdnSyair@main/images"
 # ==================
 
 def download_and_convert(src, save_path):
