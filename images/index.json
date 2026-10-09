@@ -2,31 +2,31 @@
   {
     "title": "SYAIR MACAU",
     "folder": "syair-macau",
-    "count": 10,
-    "cover_url": "https://raw.githubusercontent.com/Iyapetai69/CdnSyair/refs/heads/main/images/syair-macau/syair-macau_20261009_1646_1.webp"
+    "count": 0,
+    "cover_url": null
   },
   {
     "title": "SYAIR HONGKONG",
     "folder": "syair-hongkong",
-    "count": 14,
-    "cover_url": "https://raw.githubusercontent.com/Iyapetai69/CdnSyair/refs/heads/main/images/syair-hongkong/syair-hongkong_20261009_1647_1.webp"
+    "count": 3,
+    "cover_url": "https://raw.githubusercontent.com/Iyapetai69/CdnSyair/refs/heads/main/images/syair-hongkong/syair-hongkong_20261009_2212_1.webp"
   },
   {
     "title": "SYAIR SYDNEY",
     "folder": "syair-sydney",
-    "count": 13,
-    "cover_url": "https://raw.githubusercontent.com/Iyapetai69/CdnSyair/refs/heads/main/images/syair-sydney/syair-sydney_20261009_1647_1.webp"
+    "count": 8,
+    "cover_url": "https://raw.githubusercontent.com/Iyapetai69/CdnSyair/refs/heads/main/images/syair-sydney/syair-sydney_20261009_2212_1.webp"
   },
   {
     "title": "SYAIR SINGAPORE",
     "folder": "syair-singapore",
-    "count": 11,
-    "cover_url": "https://raw.githubusercontent.com/Iyapetai69/CdnSyair/refs/heads/main/images/syair-singapore/syair-singapore_20261009_1648_3.webp"
+    "count": 1,
+    "cover_url": "https://raw.githubusercontent.com/Iyapetai69/CdnSyair/refs/heads/main/images/syair-singapore/syair-singapore_20261009_2212_14.webp"
   },
   {
     "title": "",
     "folder": "",
-    "count": 3,
-    "cover_url": "https://raw.githubusercontent.com/Iyapetai69/CdnSyair/refs/heads/main/images//_20261009_1648_1.webp"
+    "count": 2,
+    "cover_url": "https://raw.githubusercontent.com/Iyapetai69/CdnSyair/refs/heads/main/images//_20261009_2212_3.webp"
   }
 ]
